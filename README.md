@@ -1,4 +1,4 @@
-# TCP-socket-based-FL-
+# TCP-socket-based-FL
 This is the Solo project of gkc 4I about federal learning
 
 To simulate federated learning process, two methods are provided:
