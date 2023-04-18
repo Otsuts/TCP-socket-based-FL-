@@ -6,6 +6,7 @@ import torch.utils.data
 from client import Client
 from server import Server_PP, Server_TCP
 import torchvision
+from utils import write_log
 
 
 def get_args():
@@ -13,7 +14,7 @@ def get_args():
     parser.add_argument('--num_clients', type=int, default=20)
     parser.add_argument('--epoch', type=int, default=30)
     parser.add_argument('--num_part', type=int, default=15)
-    parser.add_argument('--method', type=str, default='no')
+    parser.add_argument('--method', type=str, default='filewriting')
 
     return parser.parse_args()
 
@@ -34,7 +35,8 @@ class FedTrainer():
         self.test_dataset = torchvision.datasets.MNIST(
             '../data', train=False, download=True, transform=torchvision.transforms.ToTensor()
         )
-        self.test_loader = torch.utils.data.DataLoader(dataset=self.test_dataset, batch_size=256, shuffle=False)
+        self.test_loader = torch.utils.data.DataLoader(
+            dataset=self.test_dataset, batch_size=256, shuffle=False)
 
     def evaluate(self):
         correct = 0
@@ -48,7 +50,8 @@ class FedTrainer():
 
     def train(self):
         for epoch in range(self.args.epoch):
-            update_index = random.sample(range(self.args.num_clients), k=args.num_part)
+            update_index = random.sample(
+                range(self.args.num_clients), k=args.num_part)
             self.server.send_model(update_index)
             for client_index in update_index:
                 self.clients[client_index].receive_model()
@@ -58,16 +61,18 @@ class FedTrainer():
             self.server.receive_model(update_index)
             self.server.update(update_index)
             precision = self.evaluate()
-            print(f'Epoch: {epoch} ,precision: {precision}')
+            write_log(f'Epoch: {epoch} ,precision: {precision}', self.args)
 
 
 class FedTrainer_TCP():
-    def __init__(self):
+    def __init__(self, args):
         self.server = Server_TCP(args.num_clients)
+        self.args = args
         self.test_dataset = torchvision.datasets.MNIST(
             '../data', train=False, download=True, transform=torchvision.transforms.ToTensor()
         )
-        self.test_loader = torch.utils.data.DataLoader(dataset=self.test_dataset, batch_size=256, shuffle=False)
+        self.test_loader = torch.utils.data.DataLoader(
+            dataset=self.test_dataset, batch_size=256, shuffle=False)
 
     def evaluate(self):
         correct = 0
@@ -83,7 +88,7 @@ class FedTrainer_TCP():
         for epoch in range(20):
             self.train_one_epoch()
             precision = self.evaluate()
-            print(f'Epoch: {epoch} ,precision: {precision}')
+            write_log(f'Epoch: {epoch} ,precision: {precision}', self.args)
 
     def train_one_epoch(self):
         self.server.accept_client()
@@ -93,7 +98,7 @@ class FedTrainer_TCP():
 def main(args):
     set_seed()
     if args.method == 'TCP':
-        train = FedTrainer_TCP()
+        train = FedTrainer_TCP(args)
     else:
         train = FedTrainer(args)
     train.train()

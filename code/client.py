@@ -23,17 +23,20 @@ class Client():
     def __init__(self, number, path='../'):
         self.model = CNN()
         self.number = number
-        self.device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
-        self.data_path = os.path.join(path, 'data', f'Client{number}.pkl')
+        self.device = torch.device(
+            'cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+        self.data_path = os.path.join(path, 'data/FL_Project', f'Client{number}.pkl')
         self.model_path = os.path.join(path, 'models', f'Client{number}.pth')
         with open(self.data_path, 'rb') as f:
             self.train_dataset = dill.load(f)
-        self.train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset, batch_size=100, shuffle=True)
+        self.train_loader = torch.utils.data.DataLoader(
+            dataset=self.train_dataset, batch_size=100, shuffle=True)
         self.optimizer = Adam(self.model.parameters(), lr=1e-3)
         self.criterion = nn.CrossEntropyLoss()
 
     def receive_model(self):
-        self.model.load_state_dict(torch.load(os.path.join('../models', 'handout_model.pth')))
+        self.model.load_state_dict(torch.load(
+            os.path.join('../models', 'handout_model.pth')))
 
     def send_model(self):
         torch.save(self.model.state_dict(), self.model_path)
@@ -51,12 +54,15 @@ class Client_TCP():
     def __init__(self, number, path='../'):
         self.model = CNN()
         self.number = number
-        self.device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
-        self.data_path = os.path.join(path, 'data', f'Client{number}.pkl')
+        self.device = torch.device(
+            'cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+        self.data_path = os.path.join(
+            path, 'data/FL_Project', f'Client{number}.pkl')
         self.model_path = os.path.join(path, 'models', f'Client{number}.pth')
         with open(self.data_path, 'rb') as f:
             self.train_dataset = dill.load(f)
-        self.train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset, batch_size=100, shuffle=True)
+        self.train_loader = torch.utils.data.DataLoader(
+            dataset=self.train_dataset, batch_size=100, shuffle=True)
         self.optimizer = Adam(self.model.parameters(), lr=1e-3)
         self.criterion = nn.CrossEntropyLoss()
         # 建立套接字
